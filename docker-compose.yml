@@ -1,4 +1,3 @@
-
 services:
   atmo:
     build:
@@ -7,18 +6,17 @@ services:
       args:
         SDK_TAG: v0.53.4
     container_name: atmochain
+    env_file:
+      - .env
     environment:
       - ATMO_HOME=/home/atmo/.atmo_home
-      - CHAIN_ID=atmochain-1
-      - MONIKER=atmo-validator
-      - MIN_GAS_PRICE=0.005uatmo
     volumes:
       - atmo_home:/home/atmo/.atmo_home
     ports:
-      - "26657:26657"  # RPC
-      - "26656:26656"  # P2P
-      - "1317:1317"    # REST (якщо увімкнено)
-      - "9090:9090"    # gRPC
+      - "26657:26657"
+      - "26656:26656"
+      - "1317:1317"
+      - "9090:9090"
     restart: unless-stopped
 
 volumes:

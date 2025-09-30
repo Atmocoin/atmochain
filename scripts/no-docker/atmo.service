@@ -1,0 +1,18 @@
+# /etc/systemd/system/atmo.service
+[Unit]
+Description=AtmoChain node (no Docker)
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+User=atmo
+Group=atmo
+LimitNOFILE=65536
+Environment=ATMO_HOME=/home/atmo/.atmo_home
+ExecStart=/home/atmo/.local/bin/atmod start --home /home/atmo/.atmo_home
+Restart=always
+RestartSec=5s
+StartLimitInterval=0
+
+[Install]
+WantedBy=multi-user.target

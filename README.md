@@ -1,60 +1,63 @@
+# AtmoChain — один репозиторій для Windows (Docker) і Linux (з Docker / без Docker)
 
-# AtmoChain (на базі Cosmos SDK / CometBFT) — **Fixed Build**
-
-**Готовий каркас ноди**, який збирає еталонний застосунок `simd` з Cosmos SDK (`v0.53.4`) у бінарій `atmod` і запускає його в Docker.  
-Працює на **Windows** та **Linux** без зайвих танців.
-
-## Що змінено у цій версії
-- Оновлено Go-базовий образ до **golang:1.23.3** (SDK вимагає ≥ 1.23.2).
-- Збірка через **`make build`** (правильна ціль для `simd`), далі бінарій інсталюється як `atmod`.
-- У `entrypoint.sh` після `init` автоматично міняємо **усі `stake` → `uatmo`** у `genesis.json` — тепер `gentx` одразу працює у вашому деномі.
-- Прибрано застаріле поле `version:` з `docker-compose.yml` (Compose v2).
-- README, скрипти та коментарі — українською.
-
-## Швидкий старт (Linux/macOS)
-```bash
-./scripts/run.sh
-docker compose logs -f
-# Зупинка:
-./scripts/stop.sh
-```
-
-## Швидкий старт (Windows 10/11)
-Відкрий **CMD** (не подвійним кліком `.bat`!), перейдіть у теку проекту і запустіть:
-```
-cd "C:\Users\...\atmochain"
-scripts\run.bat
-```
-У вікні буде **пауза** та вивід логів. Для живих логів:
-```
-docker compose logs -f
-```
-
-## Що робить перший запуск
-- `atmod init` із `chain-id=atmochain-1` та монікером `atmo-validator`.
-- Замінює `stake` на `uatmo` у `genesis.json` (узгодженість деному).
-- Створює ключ `validator`, видає **100 000 000 uatmo**, генерує `gentx` на **50 000 000 uatmo** і збирає `genesis`.
-- Встановлює **minimum-gas-prices = 0.005uatmo** у `app.toml`.
-
-## Порти
-- `26657` — RPC, `26656` — P2P, `1317` — REST (за потреби), `9090` — gRPC.
-
-## Корисні команди
-```bash
-docker compose ps
-docker compose logs -f
-docker exec -it atmochain atmod status
-docker exec -it atmochain atmod version
-docker exec -it atmochain atmod keys list --keyring-backend test --home /home/atmo/.atmo_home
-```
-
-## Далі (для ATMO/PoUW)
-1. Перейменувати деном (за потреби), оновити генезис.
-2. Підключити IBC.
-3. Додати власні модулі (PoUW) поверх `simapp` або замінити застосунок.
-4. Налаштувати **Cosmovisor** для апґрейдів.
+**Публічний peer:** `cff19e7f4a09c7dbb5efff2ecca4e70b936a5f07@212.23.203.145:26656`  
+**Genesis URL:** `http://212.23.203.145:26657/genesis`  
+**Chain‑ID:** `atmochain-1` • **Denom:** `uatmo` • **Min gas:** `0.005uatmo`
 
 ---
 
-### Ліцензія
-Скрипти/обгортки — © 2025. Upstream **Cosmos SDK** — **Apache‑2.0**.
+## Вариант A — Windows (Docker) / Linux (Docker)
+
+1) Скопіюй `.env.example` → `.env` (за замовчуванням уже JOIN_MODE=peer і правильні URL/peers).
+2) Запуск:
+   - Windows: `scripts\run.bat`
+   - Linux/macOS: `./scripts/run.sh`
+3) Логи: `docker compose logs -f`  
+   Зупинка: `scripts\stop.bat` або `./scripts/stop.sh`
+
+> Для локального тесту (1 вузол) в `.env` постав `JOIN_MODE=single`.
+
+---
+
+## Вариант B — Linux **без Docker** (нативний запуск)
+
+На сервері без віртуалізації:
+```bash
+sudo apt update && sudo apt install -y git curl jq build-essential
+# Встанови Go >= 1.23.x з https://go.dev/dl/ (якщо нема)
+cd scripts/no-docker
+chmod +x install_atmo_nodocker.sh
+./install_atmo_nodocker.sh
+# Запуск
+~/.local/bin/atmod start --home ~/.atmo_home
+```
+Опціонально — systemd:
+```bash
+sudo cp scripts/no-docker/atmo.service /etc/systemd/system/
+sudo systemctl daemon-reload
+sudo systemctl enable --now atmo
+journalctl -u atmo -f
+```
+
+---
+
+## Діагностика
+```
+docker compose ps            # якщо Docker-режим
+docker compose logs -f
+# або без Docker:
+curl -s http://127.0.0.1:26657/status | jq .result.sync_info
+~/.local/bin/atmod version
+~/.local/bin/atmod tendermint show-node-id --home ~/.atmo_home
+```
+
+---
+
+## Структура
+- `docker/` — Dockerfile + entrypoint з режимами `single|peer`.
+- `docker-compose.yml` — сервіс ноди.
+- `scripts/` — запуск/стоп, плюс `no-docker/` для нативного режиму.
+- `.env.example` — параметри мережі (peer/genesis/chain-id).
+- `README.md`, `.gitignore`, `LICENSE`.
+
+Готово для публічного використання: Windows (Docker), Linux (Docker), Linux (no Docker).

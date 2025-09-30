@@ -1,0 +1,16 @@
+
+.DS_Store
+Thumbs.db
+node_modules/
+dist/
+bin/
+build/
+*.exe
+*.out
+*.env
+compose_last_minute.log
+atmo_home/
+.home/
+*.db
+.vscode/
+.idea/

@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
 set -e
-docker compose build --no-cache
+[ -f .env ] || cp .env.example .env
+docker compose build
 docker compose up -d
-echo "Node is starting. Check logs: docker compose logs -f"
+echo 'Follow logs: docker compose logs -f'
